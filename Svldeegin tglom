@@ -1,0 +1,86 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Game Constants
+WIDTH, HEIGHT = 500, 600
+CAR_WIDTH, CAR_HEIGHT = 50, 80
+ROAD_WIDTH = 300
+LANE_X = [100, 200, 300]  # Possible car positions
+WHITE = (255, 255, 255)
+RED = (200, 0, 0)
+BLUE = (0, 0, 200)
+FPS = 60
+
+# Set up the display
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("2D Car Game")
+
+# Load Car Image
+car_img = pygame.image.load("car.png")  # Replace with your car image
+car_img = pygame.transform.scale(car_img, (CAR_WIDTH, CAR_HEIGHT))
+
+# Load Obstacle Image
+obstacle_img = pygame.Surface((CAR_WIDTH, CAR_HEIGHT))
+obstacle_img.fill(RED)  # Replace with an image if needed
+
+# Game Variables
+car_x = LANE_X[1]
+car_y = HEIGHT - CAR_HEIGHT - 20
+obstacles = []
+speed = 5
+score = 0
+font = pygame.font.Font(None, 36)
+
+# Main Game Loop
+running = True
+clock = pygame.time.Clock()
+
+while running:
+    screen.fill(WHITE)
+
+    # Handle Events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Handle Key Presses
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and car_x > LANE_X[0]:
+        car_x -= 10
+    if keys[pygame.K_RIGHT] and car_x < LANE_X[-1]:
+        car_x += 10
+
+    # Generate Obstacles
+    if random.randint(1, 40) == 1:
+        obstacles.append([random.choice(LANE_X), -CAR_HEIGHT])
+
+    # Move Obstacles
+    for obstacle in obstacles:
+        obstacle[1] += speed
+    obstacles = [obs for obs in obstacles if obs[1] < HEIGHT]
+
+    # Collision Detection
+    for obs in obstacles:
+        if car_x == obs[0] and car_y < obs[1] + CAR_HEIGHT and car_y + CAR_HEIGHT > obs[1]:
+            print(f"Game Over! Final Score: {score}")
+            running = False
+
+    # Draw Car
+    screen.blit(car_img, (car_x, car_y))
+
+    # Draw Obstacles
+    for obs in obstacles:
+        screen.blit(obstacle_img, (obs[0], obs[1]))
+
+    # Update Score
+    score += 1
+    score_text = font.render(f"Score: {score}", True, BLUE)
+    screen.blit(score_text, (10, 10))
+
+    pygame.display.update()
+    clock.tick(FPS)
+
+pygame.quit()
